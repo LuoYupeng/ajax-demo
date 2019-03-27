@@ -38,41 +38,50 @@ window.jQuery = function (nodeOrSelector) {
 }
 window.$ = window.jQuery
 
-window.jQuery.ajax = function (options) {
+window.jQuery.ajax = function ({url, method, body, headers}) {
+  //目前ajax返回值是Promise对象
+
     //允许传两个参数
-    let url
-    if(arguments.length ===1){
-        url = options.url
-    }else if(arguments.length ===2){
-        url = arguments[0]
-        options = arguments[1]
-    }
-    let method = options.method
-    let body = options.body
-    let successFn = options.successFn
-    let failFn = options.failFn
-    let headers = options.headers
+    // let url
+    // if(arguments.length ===1){
+    //     url = options.url
+    // }else if(arguments.length ===2){
+    //     url = arguments[0]
+    //     options = arguments[1]
+    // }
 
-    let request = new XMLHttpRequest()
-    request.open(method,url) //配置request 请求第一部分
+    // let method = options.method
+    // let body = options.body
+    // let successFn = options.successFn
+    // let failFn = options.failFn
+    // let headers = options.headers
+    //ES6
+    //let {url, method, body, successFn, failFn, headers} = options
 
-    for(let key in headers){ //遍历设置多个header
-        let value = headers[key]
-        request.setRequestHeader(key, value)
-    }
+    //添加promise功能
+    return new Promise(function (resolve, reject) {
+        let request = new XMLHttpRequest()
+        request.open(method, url) //配置request 请求第一部分
 
-    request.onreadystatechange =  ()=>{
-        if(request.readyState === 4){
-            if(request.status >= 200 && request.status <= 300){
-                successFn.call(undefined,request.responseText)
+        for (let key in headers) { //遍历设置多个header
+            let value = headers[key]
+            request.setRequestHeader(key, value)
+        }
 
-            }else if (request.status >= 400) {
-                failFn.call(undefined,request)
+        request.onreadystatechange = () => {
+            if (request.readyState === 4) {
+                if (request.status >= 200 && request.status <= 300) {
+                    resolve.call(undefined, request.responseText)
+
+                } else if (request.status >= 400) {
+                    reject.call(undefined, request)
+                }
             }
         }
-    }
 
-    request.send(body)
+        request.send(body)
+    })
+
 }
 
 //成功之后执行两个函数
@@ -81,20 +90,16 @@ function f2(responseText){}
 
 myButton.addEventListener('click',(e) => {
     window.jQuery.ajax({
-        url: './xx',
+        url: './xxx',
         method: 'get',
         headers: {
             'content-type': 'application/x-www-form-urlencoded',
             'tom': '18'
-        },
-        successFn: (x)=>{
-            f1.call(undefined,x)
-            f2.call(undefined,x)
-        },
-        failFn: (x)=>{
-            console.log(x)
-            console.log(x.status)
-            console.log(x.responseText )
         }
-    })
+    }).then(
+        (text) => {console.log(text)},
+        (request) => {console.log(request)}
+    )
+// let promise = .... //promise.then()
+    
 })
