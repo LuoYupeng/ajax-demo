@@ -36,11 +36,30 @@ window.jQuery = function (nodeOrSelector) {
     nodes.html = function () {}
     return nodes
 }
+window.$ = window.jQuery
 
-window.jQuery.ajax = function (url, method, body, successFn, failFn) {
+window.jQuery.ajax = function (options) {
+    //允许传两个参数
+    let url
+    if(arguments.length ===1){
+        url = options.url
+    }else if(arguments.length ===2){
+        url = arguments[0]
+        options = arguments[1]
+    }
+    let method = options.method
+    let body = options.body
+    let successFn = options.successFn
+    let failFn = options.failFn
+    let headers = options.headers
+
     let request = new XMLHttpRequest()
-
     request.open(method,url) //配置request 请求第一部分
+
+    for(let key in headers){ //遍历设置多个header
+        let value = headers[key]
+        request.setRequestHeader(key, value)
+    }
 
     request.onreadystatechange =  ()=>{
         if(request.readyState === 4){
@@ -54,18 +73,28 @@ window.jQuery.ajax = function (url, method, body, successFn, failFn) {
     }
 
     request.send(body)
-
-
 }
 
-window.$ = window.jQuery
+//成功之后执行两个函数
+function f1(responseText){}
+function f2(responseText){}
 
 myButton.addEventListener('click',(e) => {
-    window.jQuery.ajax(
-        './xxx',
-        'post',
-        'a=1&b=2',
-        (responseText) => {console.log(1)},
-        (request) => {console.log(2)}
-    )
+    window.jQuery.ajax({
+        url: './xx',
+        method: 'get',
+        headers: {
+            'content-type': 'application/x-www-form-urlencoded',
+            'tom': '18'
+        },
+        successFn: (x)=>{
+            f1.call(undefined,x)
+            f2.call(undefined,x)
+        },
+        failFn: (x)=>{
+            console.log(x)
+            console.log(x.status)
+            console.log(x.responseText )
+        }
+    })
 })
